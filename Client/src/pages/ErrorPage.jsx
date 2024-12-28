@@ -7,7 +7,7 @@ const ErrorPage = () => {
       <div className="error_page_text">
         <center>
         <p>Error <span> 404</span></p>
-        <p>It seems the page you're looking for does not exist on Black <span>Essentials.</span></p>
+        <p>The page you're looking for does not exist on Black <span>Essentials</span> servers.</p>
         </center>
       </div>
 
