@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs')
+const jwt = require("jsonwebtoken")
 
 const User = require('../models/userModel')
 const HttpError = require("../models/errorModel")
@@ -54,13 +55,65 @@ const registerUser = async (req, res, next) => {
 
 
 
+
+
+
+
+
+
 // -------- Login  User
 // POST : api/users/login
 // UNPROTECTED
 
 const loginUser = async (req, res, next) => {
-    res.json("Login User")
+    try {
+        // both password && email empty ??
+        const {email, password} = req.body;
+        if (!email || !password) {
+            return next(new HttpError("Fill In All Fields!", 422))
+        }
+
+        // convert email input to .toLowerCase()
+        const newEmail = email.toLowerCase();
+
+        // fetch associated user
+        const user = await User.findOne({email: newEmail}) 
+            if (!user) {
+                return next(new HttpError("User Unavailable!", 422))
+            }
+        
+
+            // compared password
+            const comparePassword = await bcrypt.compare(password, user.password)
+            if (!comparePassword) {
+                return next(new HttpError("Invalid Password!", 422))
+            }
+
+
+            // extract user details for token binding 
+            const {_id: id, name} = user;
+            //generate token
+            const token = jwt.sign({id, name}, process.env.JWT_SECRET, {expiresIn: "1d"})
+
+
+            //response if all is true
+            res.status(200).json({token, id, name})
+            
+    } catch (error) {
+        return next(new HttpError("Login Failed!", 422))
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
