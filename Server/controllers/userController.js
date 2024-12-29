@@ -27,7 +27,7 @@ const registerUser = async (req, res, next) => {
 
         // validate password to be more than 6 chars
         if ((password.trim()).length < 6) {
-            return next(new HttpError("Password Should Be a Minimum of 6 Characters!", 422))
+            return next(new HttpError("Password Should Be A Minimum of 6 Characters!", 422))
         }
 
         // validate passwords match
@@ -124,7 +124,18 @@ const loginUser = async (req, res, next) => {
 // PROTECTED
 
 const getUser = async (req, res, next) => {
-    res.json("User Profile")
+    try {
+        const {id} = req.params;
+        // get user details without password
+        const user = await User.findById(id).select('-password');
+        if (!user) {
+            return next(new HttpError("User Not Found!", 404))
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        return next(new HttpError("Error Retrieving User!", 422))
+    }
 }
 
 
