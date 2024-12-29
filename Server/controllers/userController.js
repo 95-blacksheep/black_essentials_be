@@ -58,9 +58,6 @@ const registerUser = async (req, res, next) => {
 
 
 
-
-
-
 // -------- Login  User
 // POST : api/users/login
 // UNPROTECTED
@@ -114,11 +111,6 @@ const loginUser = async (req, res, next) => {
 
 
 
-
-
-
-
-
 // --------  User Profile
 // GET : api/users/:id
 // PROTECTED
@@ -142,6 +134,29 @@ const getUser = async (req, res, next) => {
 
 
 
+
+
+
+
+// --------  Get All Authors/Users 
+// GET : api/users/authors
+// UNPROTECTED
+
+const getAuthors = async (req, res, next) => {
+    try {
+        const authors = await User.find().select('-password');
+        res.json(authors);
+    } catch (error) {
+        return next(new HttpError("Error Retrieving All Users!", 422))
+    }
+}
+
+
+
+
+
+
+
 // --------  User Avatar Change
 // POST : api/users/change_avatar
 // PROTECTED
@@ -149,6 +164,8 @@ const getUser = async (req, res, next) => {
 const changeAvatar = async (req, res, next) => {
     res.json("Edit User Avatar")
 }
+
+
 
 
 
@@ -167,13 +184,7 @@ const editUser = async (req, res, next) => {
 
 
 
-// --------  Get All Authors/Users 
-// GET : api/users/authors
-// UNPROTECTED
 
-const getAuthors = async (req, res, next) => {
-    res.json("All Users")
-}
 
 
 
