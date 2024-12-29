@@ -1,5 +1,8 @@
 const bcrypt = require('bcryptjs')
 const jwt = require("jsonwebtoken")
+const fs = require('fs')
+const path = require('path')
+const {v4: uuid} = require("uuid")
 
 const User = require('../models/userModel')
 const HttpError = require("../models/errorModel")
@@ -157,12 +160,63 @@ const getAuthors = async (req, res, next) => {
 
 
 
+
 // --------  User Avatar Change
 // POST : api/users/change_avatar
 // PROTECTED
 
 const changeAvatar = async (req, res, next) => {
-    res.json("Edit User Avatar")
+    try {
+        // check for image availability 
+        if (!req.files.avatar) {
+            return next(new HttpError("Choose An Image!", 422))
+        }
+        
+        // find user from db
+        const user = await User.findById(req.user.id)
+        // delete old avatar if any
+        if (user.avatar) {
+            fs.unlink(path.join(__dirname, '..', 'uploads', user.avatar), (err) => {
+                if (err) {
+                    return next(new HttpError("Error Uploading Profile Picture!", 422))
+                }
+            })
+        }
+
+        // if user has no avatar or user inserts new image
+        //extract avatar from request files
+        const {avatar} = req.files;
+
+        // check file size 
+        if (avatar.size > 50000) {
+            return next(new HttpError("Profile Picture Should Be Less Than 5MB!", 422))
+        }
+
+        // rename image
+        let fileName;
+        fileName = avatar.name;
+        let splittedFileName = fileName.spilt('.')
+        let newFilename = splittedFileName[0] + uuid() + '.' + splittedFileName[splittedFileName.length -1]
+
+        // upload image
+        avatar.mv(path.join(__dirname, '..', 'uploads', newFilename), async (err) => {
+            if (err) {
+                return next(new HttpError(err))
+            }
+
+            // if image upload succeeds
+            const updatedAvatar = await User.findByIdAndUpdate(req.user.id, {avatar: newFilename}, {new: true})
+            // if upload fails 
+            if (!updatedAvatar) {
+                return next(new HttpError("Profile Picture Upload Failed!", 422))
+            }
+            res.status(200).json(updatedAvatar)
+        })
+
+
+    } catch (error) {
+        return next(new HttpError("Error Retrieving Profile Picture!", 422))
+    }
 }
 
 
