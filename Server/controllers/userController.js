@@ -231,7 +231,52 @@ const changeAvatar = async (req, res, next) => {
 // PROTECTED
 
 const editUser = async (req, res, next) => {
-    res.json("Edit User")
+    try {
+        // get all details from user 
+        const {name, email, currentPassword, newPassword, confirm_password} = req.body;
+
+        // validate empty fields 
+        if (!name || !email || !currentPassword || !newPassword) {
+            return next(new HttpError("Fill In All Fields!", 422))
+        }
+
+        // get user from db 
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return next(new HttpError("User Not Found!", 403))
+        }
+
+        // check if new email exists
+        const emailExists = await User.findOne({email});
+
+        //change email of pk only 
+        if (emailExists && (emailExists._id != req.user.id)) {
+            return next(new HttpError("Email Unavailable!", 422))
+        }
+
+        //compare current password to db password 
+        const validateUserPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validateUserPassword) {
+            return next(new HttpError("Current Password Invalid!", 422))
+        }
+
+        // compare new password
+        if (newPassword !== confirm_password) {
+            return next(new HttpError("Passwords Do Not Match!", 422))
+        }
+
+        // hash new password
+        const salt = await bcrypt.genSalt(10)
+        const hash= await bcrypt.hash(newPassword, salt);
+
+        // update user info in db 
+        const newInfo = await User.findByIdAndUpdate(req.user.id, {name, email, password: hash}, {new: true})
+
+        // send new info 
+        res.status(200).json(newInfo)
+    } catch (error) {
+        return next(new HttpError(error))
+    }
 }
 
 

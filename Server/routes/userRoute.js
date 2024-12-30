@@ -13,7 +13,7 @@ router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.get('/:id', getUser)
 router.post('/change_avatar', authMiddleware, changeAvatar)
-router.patch('/edit_user', editUser)
+router.patch('/edit_user', authMiddleware, editUser)
 router.get('/', getAuthors)
 
 
