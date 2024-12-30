@@ -178,7 +178,7 @@ const changeAvatar = async (req, res, next) => {
         if (user.avatar) {
             fs.unlink(path.join(__dirname, '..', 'uploads', user.avatar), (err) => {
                 if (err) {
-                    return next(new HttpError("Error Uploading Profile Picture!", 422))
+                    return next(new HttpError(err))
                 }
             })
         }
@@ -188,14 +188,14 @@ const changeAvatar = async (req, res, next) => {
         const {avatar} = req.files;
 
         // check file size 
-        if (avatar.size > 50000) {
-            return next(new HttpError("Profile Picture Should Be Less Than 5MB!", 422))
+        if (avatar.size > 500000) {
+            return next(new HttpError("Profile Picture Should Be Less Than 500MB!", 422))
         }
 
         // rename image
         let fileName;
         fileName = avatar.name;
-        let splittedFileName = fileName.spilt('.')
+        let splittedFileName = fileName.split('.')
         let newFilename = splittedFileName[0] + uuid() + '.' + splittedFileName[splittedFileName.length -1]
 
         // upload image
@@ -215,7 +215,7 @@ const changeAvatar = async (req, res, next) => {
 
 
     } catch (error) {
-        return next(new HttpError("Error Retrieving Profile Picture!", 422))
+        return next(new HttpError(error))
     }
 }
 
